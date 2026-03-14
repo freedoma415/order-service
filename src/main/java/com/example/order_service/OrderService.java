@@ -1,11 +1,11 @@
 package com.example.order_service;
 
-import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 public class OrderService {
@@ -18,22 +18,22 @@ public class OrderService {
 
     @Transactional
     public String placeOrder(Order request) {
-        // 1. Generate a random Order Number
         request.setOrderNumber(UUID.randomUUID().toString());
-
-        // 2. Save the order to the local Order MySQL Database
+        
+        // 1. Saves to MySQL (including the buyerName and cardNumber)
         orderRepository.save(request);
 
-        // 3. Create the Kafka Event
+        // 2. Create the Kafka Event (Passing the buyerName, but NOT the card number)
         OrderPlacedEvent event = new OrderPlacedEvent(
                 request.getOrderNumber(),
                 request.getProductId(),
-                request.getQuantity()
+                request.getQuantity(),
+                request.getBuyerName() // --- ADDED THIS ---
         );
 
-        // 4. Send the event to the Kafka Broker (Topic: "order-topic")
+        // 3. Send to Kafka
         kafkaTemplate.send("order-topic", event);
 
-        return "Order Placed Successfully!";
+        return "Order Placed Successfully for " + request.getBuyerName() + "!";
     }
 }

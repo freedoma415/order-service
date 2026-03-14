@@ -15,8 +15,12 @@ public class Order {
     private String orderNumber;
     private String productId;
     private int quantity;
+    
+    // --- NEW FIELDS ---
+    private String buyerName;
+    private String cardNumber;
 
-    // Getters and Setters
+    // Existing Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getOrderNumber() { return orderNumber; }
@@ -25,4 +29,10 @@ public class Order {
     public void setProductId(String productId) { this.productId = productId; }
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) { this.quantity = quantity; }
+
+    // --- NEW Getters and Setters ---
+    public String getBuyerName() { return buyerName; }
+    public void setBuyerName(String buyerName) { this.buyerName = buyerName; }
+    public String getCardNumber() { return cardNumber; }
+    public void setCardNumber(String cardNumber) { this.cardNumber = cardNumber; }
 }
