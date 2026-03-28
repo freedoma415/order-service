@@ -1,29 +1,28 @@
-package com.example.order_service; // Change this to com.example.Product when pasting into the Product service!
+package com.example.order_service; // Update if your package is different
 
 public class OrderPlacedEvent {
-    private String orderNumber;
+
+    private String orderId; 
     private String productId;
     private int quantity;
-    private String buyerName; // --- NEW FIELD ---
+    private String buyerName;
+    private String cardNumber;
 
-    public OrderPlacedEvent() {}
+    public String getOrderId() { return orderId; }
+    public void setOrderId(String orderId) { this.orderId = orderId; }
+    // ... keep your other getters and setters ...
 
-    public OrderPlacedEvent(String orderNumber, String productId, int quantity, String buyerName) {
-        this.orderNumber = orderNumber;
-        this.productId = productId;
-        this.quantity = quantity;
-        this.buyerName = buyerName;
-    }
 
-    // Existing Getters and Setters
-    public String getOrderNumber() { return orderNumber; }
-    public void setOrderNumber(String orderNumber) { this.orderNumber = orderNumber; }
+    // Getters and Setters are required for Spring to map the JSON
     public String getProductId() { return productId; }
     public void setProductId(String productId) { this.productId = productId; }
+
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) { this.quantity = quantity; }
 
-    // --- NEW Getter and Setter ---
     public String getBuyerName() { return buyerName; }
     public void setBuyerName(String buyerName) { this.buyerName = buyerName; }
+
+    public String getCardNumber() { return cardNumber; }
+    public void setCardNumber(String cardNumber) { this.cardNumber = cardNumber; }
 }

@@ -3,37 +3,47 @@ package com.example.order_service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
+import org.springframework.web.client.RestClient;
 
 @Service
 public class OrderService {
 
     @Autowired
-    private OrderRepository orderRepository;
+    private KafkaTemplate<String, String> kafkaTemplate;
 
     @Autowired
-    private KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
+    private RestClient inventoryRestClient; 
 
-    @Transactional
-    public String placeOrder(Order request) {
-        request.setOrderNumber(UUID.randomUUID().toString());
+    public String processNewOrder(OrderRequest request) {
+        System.out.println("⚙️ [ORDER] Processing order for: " + request.getBuyerName());
         
-        // 1. Saves to MySQL (including the buyerName and cardNumber)
-        orderRepository.save(request);
+        // 1. SYNCHRONOUS HTTP CALL: Ask Inventory Service if it's in stock
+        System.out.println("🔍 [ORDER] Checking stock with INVENTORY-SERVICE...");
+        
+        try {
+            Boolean inStock = inventoryRestClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/api/inventory/{productId}")
+                            .queryParam("quantity", request.getQuantity())
+                            .build(request.getProductId()))
+                    .retrieve()
+                    .body(Boolean.class); 
 
-        // 2. Create the Kafka Event (Passing the buyerName, but NOT the card number)
-        OrderPlacedEvent event = new OrderPlacedEvent(
-                request.getOrderNumber(),
-                request.getProductId(),
-                request.getQuantity(),
-                request.getBuyerName() // --- ADDED THIS ---
-        );
+            if (Boolean.FALSE.equals(inStock)) {
+                System.out.println("🚫 [ORDER] Order rejected: Item is out of stock.");
+                return "OUT_OF_STOCK"; // Fails immediately, skipping Kafka entirely
+            }
+            
+        } catch (Exception e) {
+            System.out.println("⚠️ [ORDER] Failed to reach Inventory Service: " + e.getMessage());
+            return "INVENTORY_ERROR"; 
+        }
 
-        // 3. Send to Kafka
-        kafkaTemplate.send("order-topic", event);
-
-        return "Order Placed Successfully for " + request.getBuyerName() + "!";
+        // 2. ASYNCHRONOUS KAFKA CALL: Proceed with the payment Saga
+        System.out.println("✅ [ORDER] Stock confirmed. Sending to Payment Saga...");
+        String payload = request.getOrderId() + ":" + request.getProductId() + ":" + request.getCardNumber();
+        kafkaTemplate.send("order-topic", payload);
+        
+        return "PENDING";
     }
 }
