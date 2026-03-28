@@ -14,7 +14,7 @@ public class OrderService {
     @Autowired
     private RestClient inventoryRestClient; 
 
-    public String processNewOrder(OrderRequest request) {
+    public String processNewOrder(OrderPlacedEvent request) {
         System.out.println("⚙️ [ORDER] Processing order for: " + request.getBuyerName());
         
         // 1. SYNCHRONOUS HTTP CALL: Ask Inventory Service if it's in stock
