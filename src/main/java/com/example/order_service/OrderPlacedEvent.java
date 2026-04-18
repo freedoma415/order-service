@@ -1,19 +1,16 @@
-package com.example.order_service; // Update if your package is different
+package com.example.order_service;
 
 public class OrderPlacedEvent {
-
-    private String orderId; 
+    private String orderId;     // <--- THIS IS REQUIRED NOW
     private String productId;
     private int quantity;
     private String buyerName;
     private String cardNumber;
 
+    // Getters and Setters
     public String getOrderId() { return orderId; }
     public void setOrderId(String orderId) { this.orderId = orderId; }
-    // ... keep your other getters and setters ...
 
-
-    // Getters and Setters are required for Spring to map the JSON
     public String getProductId() { return productId; }
     public void setProductId(String productId) { this.productId = productId; }
 
