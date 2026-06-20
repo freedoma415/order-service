@@ -19,6 +19,7 @@ public class Order {
     // --- NEW FIELDS ---
     private String buyerName;
     private String cardNumber;
+    private String status;
 
     // Existing Getters and Setters
     public Long getId() { return id; }
@@ -29,7 +30,8 @@ public class Order {
     public void setProductId(String productId) { this.productId = productId; }
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) { this.quantity = quantity; }
-
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
     // --- NEW Getters and Setters ---
     public String getBuyerName() { return buyerName; }
     public void setBuyerName(String buyerName) { this.buyerName = buyerName; }

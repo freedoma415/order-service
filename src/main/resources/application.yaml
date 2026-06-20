@@ -1,44 +1,57 @@
 server:
-  port: 8081
+  port: 8081 
 
 spring:
   application:
-    name: ORDER-SERVICE
+    name: ORDER-SERVICE 
 
+  # 1. MySQL Database Configuration
   datasource:
-    url: jdbc:mysql://localhost:3306/order_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/order_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
     username: root
-    password: root
+    password: root 
     driver-class-name: com.mysql.cj.jdbc.Driver
-  management:
+
+  # 2. JPA / Hibernate Configuration
+  jpa:
+    hibernate:
+      ddl-auto: create-drop 
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  # 3. Kafka Configuration (With Error Handling Deserializer)
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: order-saga-group-v3 # 🚨 Bump this to v3 for a fresh start
+      auto-offset-reset: latest     # 🚨 THE MAGIC FIX: Ignore all old garbage data!
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: com.example.order_service.OrderPlacedEvent 
+
+# 4. Prometheus Monitoring & Grafana Tags
+management:
   endpoints:
     web:
       exposure:
         include: prometheus, health, info
   metrics:
     tags:
-      application: ${spring.application.name} # This helps Grafana tell them apart!  
+      application: ${spring.application.name}
 
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: true
-    database-platform: org.hibernate.dialect.MySQLDialect
-  kafka:
-    bootstrap-servers: localhost:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-    consumer:
-      group-id: order-saga-group
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-
+# 5. The "Phone Home" Eureka Configuration
 eureka:
-  instance:
-    prefer-ip-address: true
-    ip-address: 127.0.0.1
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
