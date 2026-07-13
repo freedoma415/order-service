@@ -32,3 +32,8 @@ Places a new order and triggers the Saga.
   "cardNumber": "1111222233334444",
   "quantity": 1
 }
+GET /api/orders/status/{orderNumber}
+Retrieves the real-time status of a specific order (PENDING, SUCCESS, FAILED, NOT_FOUND).
+
+GET /api/orders
+Retrieves a list of all orders.
